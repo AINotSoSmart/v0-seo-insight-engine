@@ -8,7 +8,11 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ connected: false }, { status: 401 })
     }
-    const tokens = await getStoredTokens(String((user as any).id))
+    const userId = (user as any).id || (user as any).primaryEmail
+    if (!userId) {
+      return NextResponse.json({ connected: false }, { status: 200 })
+    }
+    const tokens = await getStoredTokens(String(userId))
     return NextResponse.json({ connected: !!(tokens && tokens.access_token) })
   } catch (error) {
     console.error("[gsc] connection-status error:", error)

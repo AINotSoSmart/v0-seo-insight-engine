@@ -34,7 +34,7 @@ export async function saveUserTokens(userId: string, tokens: any) {
 export async function getUserTokens(userId: string) {
   const sql_client = getSql()
   const result = await sql_client.query("SELECT * FROM user_tokens WHERE user_id = $1", [userId])
-  return result.rows[0] || null
+  return result?.rows?.[0] || null
 }
 
 // GSC Properties management
@@ -56,10 +56,9 @@ export async function saveGSCProperty(userId: string, propertyUrl: string, prope
 
 export async function getUserProperties(userId: string) {
   const sql_client = getSql()
-  const result = await sql_client.query(
-    "SELECT * FROM gsc_properties WHERE user_id = $1 ORDER BY created_at DESC",
-    [userId],
-  )
+  const result = await sql_client.query("SELECT * FROM gsc_properties WHERE user_id = $1 ORDER BY created_at DESC", [
+    userId,
+  ])
   return result.rows
 }
 
