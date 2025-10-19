@@ -1,13 +1,14 @@
-import { getStoredTokens } from "@/lib/gsc-auth"
+import { NextResponse } from "next/server"
+import { stackServerApp } from "@/stack/server"
 
 export async function GET() {
   try {
-    const tokens = await getStoredTokens()
-    if (tokens && tokens.access_token) {
-      return Response.json({ authenticated: true })
+    const user = await stackServerApp.getUser()
+    if (user) {
+      return NextResponse.json({ authenticated: true })
     }
-    return Response.json({ authenticated: false }, { status: 401 })
+    return NextResponse.json({ authenticated: false }, { status: 401 })
   } catch (error) {
-    return Response.json({ authenticated: false }, { status: 401 })
+    return NextResponse.json({ authenticated: false }, { status: 401 })
   }
 }

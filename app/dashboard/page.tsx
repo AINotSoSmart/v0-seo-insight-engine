@@ -18,19 +18,22 @@ export default function DashboardPage() {
   const [properties, setProperties] = useState<any[]>([])
   const [analysis, setAnalysis] = useState<any>(null)
   const [syncing, setSyncing] = useState(false)
+  const [connected, setConnected] = useState(false)
+  const [googleProperties, setGoogleProperties] = useState<any[]>([])
+  const [selectedGooglePropertyUrl, setSelectedGooglePropertyUrl] = useState<string | null>(null)
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const res = await fetch("/api/auth/check")
         if (!res.ok) {
-          router.push("/auth/login")
+          router.push("/handler/sign-in")
           return
         }
         setIsAuthenticated(true)
-        await loadProperties()
+        await loadConnectionStatus()
       } catch (error) {
-        router.push("/auth/login")
+        router.push("/handler/sign-in")
       } finally {
         setLoading(false)
       }
@@ -53,6 +56,38 @@ export default function DashboardPage() {
     }
   }
 
+  const loadConnectionStatus = async () => {
+    try {
+      const res = await fetch("/api/gsc/connection-status")
+      if (res.ok) {
+        const data = await res.json()
+        const isConn = !!data.connected
+        setConnected(isConn)
+        if (isConn) {
+          await Promise.all([loadProperties(), loadGoogleProperties()])
+        }
+      }
+    } catch (error) {
+      console.error("Error checking connection:", error)
+    }
+  }
+
+  const loadGoogleProperties = async () => {
+    try {
+      const res = await fetch("/api/gsc/list-properties")
+      if (res.ok) {
+        const data = await res.json()
+        setGoogleProperties(data)
+        if (data.length > 0) {
+          setSelectedGooglePropertyUrl(data[0].siteUrl)
+        }
+      }
+    } catch (error) {
+      console.error("Error loading Google properties:", error)
+    }
+  }
+
+
   const handleSync = async () => {
     if (!selectedProperty) return
 
@@ -70,6 +105,27 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error("Sync error:", error)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  const handleInitialSync = async () => {
+    if (!selectedGooglePropertyUrl) return
+
+    setSyncing(true)
+    try {
+      const res = await fetch("/api/gsc/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ propertyUrl: selectedGooglePropertyUrl }),
+      })
+
+      if (res.ok) {
+        await loadProperties()
+      }
+    } catch (error) {
+      console.error("Initial sync error:", error)
     } finally {
       setSyncing(false)
     }
@@ -121,18 +177,54 @@ export default function DashboardPage() {
             <p className="text-slate-400">Analyze your search performance and get optimization recommendations</p>
           </div>
           <div className="flex gap-4">
-            <PropertySelector
-              properties={properties}
-              selectedProperty={selectedProperty}
-              onSelect={setSelectedProperty}
-            />
-            <button
-              onClick={handleSync}
-              disabled={syncing}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded-lg font-medium transition"
-            >
-              {syncing ? "Syncing..." : "Sync Data"}
-            </button>
+            {connected && properties.length > 0 ? (
+              <div className="flex gap-4">
+                <PropertySelector
+                  properties={properties}
+                  selectedProperty={selectedProperty}
+                  onSelect={setSelectedProperty}
+                />
+                <button
+                  onClick={handleSync}
+                  disabled={syncing}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded-lg font-medium transition"
+                >
+                  {syncing ? "Syncing..." : "Sync Data"}
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4">
+                {!connected ? (
+                  <button
+                    onClick={() => (window.location.href = "/api/auth/login")}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
+                  >
+                    Connect Google
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selectedGooglePropertyUrl || ""}
+                      onChange={(e) => setSelectedGooglePropertyUrl(e.target.value)}
+                      className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-md text-slate-200"
+                    >
+                      {googleProperties.map((p) => (
+                        <option key={p.siteUrl} value={p.siteUrl}>
+                          {p.siteUrl}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleInitialSync}
+                      disabled={!selectedGooglePropertyUrl || syncing}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white rounded-lg font-medium transition"
+                    >
+                      {syncing ? "Syncing..." : "Sync Property"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

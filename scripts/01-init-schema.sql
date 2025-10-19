@@ -49,6 +49,20 @@ CREATE TABLE IF NOT EXISTS user_tokens (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Users table for Google-authenticated accounts
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  google_id VARCHAR(255) UNIQUE NOT NULL,
+  email VARCHAR(255),
+  name VARCHAR(255),
+  picture TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
 CREATE INDEX idx_gsc_search_data_property ON gsc_search_data(property_id);
 CREATE INDEX idx_gsc_search_data_date ON gsc_search_data(date);
 CREATE INDEX idx_recommendations_property ON seo_recommendations(property_id);

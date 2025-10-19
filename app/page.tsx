@@ -48,15 +48,14 @@ export default function Home() {
             <Card>
               <CardHeader>
                 <CardTitle>Get Started</CardTitle>
-                <CardDescription>Connect your Google Search Console property</CardDescription>
+                <CardDescription>Sign in to access your protected dashboard</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-slate-600 mb-6">
-                  Analyze your search performance, identify optimization opportunities, and get AI-powered content
-                  recommendations.
+                  Authenticate with Neon Stack to access your dashboard, then connect Google Search Console from inside.
                 </p>
-                <Link href="/auth/login">
-                  <Button className="w-full">Connect Google Search Console</Button>
+                <Link href="/handler/sign-in">
+                  <Button className="w-full">Sign in with Neon Stack</Button>
                 </Link>
               </CardContent>
             </Card>

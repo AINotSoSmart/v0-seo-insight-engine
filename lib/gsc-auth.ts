@@ -7,7 +7,9 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/auth/callback",
 )
 
-const SCOPES = ["https://www.googleapis.com/auth/webmasters.readonly"]
+const SCOPES = [
+  "https://www.googleapis.com/auth/webmasters.readonly",
+]
 
 export function generateAuthUrl(): string {
   const authUrl = oauth2Client.generateAuthUrl({
@@ -28,7 +30,14 @@ export async function saveTokens(tokens: any, userId = "default") {
 }
 
 export async function getStoredTokens(userId = "default") {
-  return await getUserTokens(userId)
+  const row = await getUserTokens(userId)
+  if (!row) return null
+  // Map DB row to google OAuth2 token shape
+  return {
+    access_token: row.access_token,
+    refresh_token: row.refresh_token || undefined,
+    expiry_date: row.token_expiry ? new Date(row.token_expiry).getTime() : undefined,
+  }
 }
 
 export function setCredentials(tokens: any) {
