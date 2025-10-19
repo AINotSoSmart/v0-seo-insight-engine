@@ -13,6 +13,11 @@ export async function middleware(request: NextRequest) {
     response.cookies.delete("session_user")
   }
 
+  // Skip auth checks for API routes (including GSC auth callback)
+  if (pathname.startsWith("/api/")) {
+    return response ?? NextResponse.next()
+  }
+
   // Protect dashboard routes
   if (pathname.startsWith("/dashboard")) {
     const user = await stackServerApp.getUser()

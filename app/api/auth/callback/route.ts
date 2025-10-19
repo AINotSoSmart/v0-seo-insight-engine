@@ -4,7 +4,13 @@ import { exchangeCodeForToken, saveTokens } from "@/lib/gsc-auth"
 
 export async function POST(request: Request) {
   try {
-    const user = await stackServerApp.getUser({ or: "redirect" })
+    const user = await stackServerApp.getUser()
+    if (!user) {
+      const res = NextResponse.json({ error: "User not authenticated" }, { status: 401 })
+      res.cookies.delete("session_user")
+      return res
+    }
+    
     const { code } = await request.json()
 
     if (!code) {
