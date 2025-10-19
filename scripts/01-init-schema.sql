@@ -67,3 +67,6 @@ CREATE INDEX idx_gsc_search_data_property ON gsc_search_data(property_id);
 CREATE INDEX idx_gsc_search_data_date ON gsc_search_data(date);
 CREATE INDEX idx_recommendations_property ON seo_recommendations(property_id);
 CREATE INDEX idx_recommendations_status ON seo_recommendations(status);
+
+
+
