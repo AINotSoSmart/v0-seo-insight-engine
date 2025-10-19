@@ -11,6 +11,8 @@ export async function GET() {
     const tokens = await getStoredTokens(String((user as any).id))
     return NextResponse.json({ connected: !!(tokens && tokens.access_token) })
   } catch (error) {
-    return NextResponse.json({ connected: false }, { status: 500 })
+    console.error("[gsc] connection-status error:", error)
+    // Return a safe response to avoid blocking the dashboard UI
+    return NextResponse.json({ connected: false }, { status: 200 })
   }
 }
